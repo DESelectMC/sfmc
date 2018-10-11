@@ -1,0 +1,39 @@
+{
+  "name": "sfmc",
+  "version": "0.0.1",
+  "description": "Salesforce Marketing Cloud JS API.",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon ./server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DESelectMC/sfmc.git"
+  },
+  "author": "Timothy Verhaeghe <me@timothyverhaeghe.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DESelectMC/sfmc/issues"
+  },
+  "_moduleAliases": {
+    "@sfmc": "./sfmc",
+    "@auth": "./auth"
+  },
+  "homepage": "https://github.com/DESelectMC/sfmc#readme",
+  "dependencies": {
+    "babel-eslint": "^8.2.3",
+    "fast-xml-parser": "^3.12.0",
+    "fs": "0.0.2",
+    "js-beautify": "^1.8.1",
+    "jwt-simple": "^0.5.1",
+    "module-alias": "^2.1.0",
+    "path": "^0.12.7",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.12.0"
+  }
+}
