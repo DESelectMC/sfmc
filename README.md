@@ -26,10 +26,10 @@ sfmc.dataExtentions.list({
 
 
 ## Roadmap
+- In app token managment (request, refresh etc.)
 - If token is expired, refresh it
-- Which server is used
 
 
 ## Author
-Timothy Verhaeghe <me@timothyverhaeghe.com>
+Timothy Verhaeghe <me@timothyverhaeghe.com> <br />
 Sponsored & maintained by DESelect.io.
