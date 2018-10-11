@@ -11,7 +11,7 @@ const auth = { oauthToken: 'xxxxx'} // or with oauthToken (=> ADVICED)
 
 ```javascript
 // Module to create a new queryActivity
-sfmc.modules.queryActivity.create(auth, {
+sfmc.queryActivity.create(auth, {
   query: 'Select Name as EMAIL from Accounts',
   DEName: 'Target_DE',
   DECustomerKey: 'xxxxx-xxxx-xxxx-xxx-xxxx',
@@ -22,7 +22,7 @@ sfmc.modules.queryActivity.create(auth, {
 
 ```javascript
 // Module to update a queryActivity
-sfmc.modules.queryActivity.update(auth, 'xxxxx-xxx-xxx-xxx-xxx', {
+sfmc.queryActivity.update(auth, 'xxxxx-xxx-xxx-xxx-xxx', {
   name: 'Test activity',
   description: 'Test activity',
   query: 'Select Name as EMAIL from Accounts',
@@ -35,12 +35,12 @@ sfmc.modules.queryActivity.update(auth, 'xxxxx-xxx-xxx-xxx-xxx', {
 
 ```javascript
 // Module to start a queryActivity & to check the status
-sfmc.modules.queryActivity.run(auth, 'xxxx-xxx-4139-xxx-xxxx', (err, task) => {
+sfmc.queryActivity.run(auth, 'xxxx-xxx-4139-xxx-xxxx', (err, task) => {
   console.log('Task', task);
-  sfmc.modules.queryActivity.status(auth, task.ID, (err, data) => {
+  sfmc.queryActivity.status(auth, task.ID, (err, data) => {
     console.log(data);
     setTimeout(() => {
-      sfmc.modules.queryActivity.status(auth, task.ID, (err, data) => {
+      sfmc.queryActivity.status(auth, task.ID, (err, data) => {
         console.log(data);
       });
     }, 3000);

@@ -1,8 +1,8 @@
 {
   "name": "sfmc",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Salesforce Marketing Cloud JS API.",
-  "main": "server.js",
+  "main": "./sfmc/index.js",
   "scripts": {
     "start": "nodemon ./server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,8 +17,8 @@
     "url": "https://github.com/DESelectMC/sfmc/issues"
   },
   "_moduleAliases": {
-    "@sfmc": "./sfmc",
-    "@auth": "./auth"
+    "@auth": "./auth",
+    "@sfmc": "./sfmc"
   },
   "homepage": "https://github.com/DESelectMC/sfmc#readme",
   "dependencies": {

@@ -1,4 +1,5 @@
 module.exports = {
-  modules: require('./modules/index'),
   soap: require('./soap'),
+  queryActivity: require('./modules/queryActivity'),
+  dataExtentions: require('./modules/data_extention'),
 };

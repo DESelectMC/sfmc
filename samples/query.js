@@ -12,7 +12,7 @@ const body = {
 
 
 // All in one example
-sfmc.modules.queryActivity.create({
+sfmc.queryActivity.create({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, {
@@ -21,12 +21,12 @@ sfmc.modules.queryActivity.create({
   DECustomerKey: body.DECustomerKey,
 }, (err, data) => {
   if (data.success) {
-    sfmc.modules.queryActivity.run({
+    sfmc.queryActivity.run({
       oauthToken: auth.oauthToken,
       server: 's10',
     }, data.ObjectID, (err, task) => {
       console.log('Task', task);
-      sfmc.modules.queryActivity.status({
+      sfmc.queryActivity.status({
         oauthToken: auth.oauthToken,
         server: 's10',
       }, task.ID, (err, data) => {

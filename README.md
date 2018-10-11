@@ -6,10 +6,17 @@ Keep in mind that this package is still under construction.
 If you want add extra feature or have feature requests, you can contact me at me@timothyverhaeghe.com
 
 
+## Installation
+```bash
+npm install sfmc --save
+```
+
 ## Examples snippets
 ```javascript
 // Show a list of all dataExtentions
-sfmc.modules.dataExtentions.list({
+const sfmc = require('sfmc');
+
+sfmc.dataExtentions.list({
   oauthToken: 'xxxxx',
   server: 'xx' // ex. s10
 }, (err, data) => {

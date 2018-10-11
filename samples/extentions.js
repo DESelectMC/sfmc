@@ -2,7 +2,7 @@ const sfmc = require('../sfmc/index');
 const auth = require('../auth');
 
 // All in one example
-sfmc.modules.dataExtentions.list({
+sfmc.dataExtentions.list({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, (err, data) => {
