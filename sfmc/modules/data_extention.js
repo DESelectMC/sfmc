@@ -118,7 +118,17 @@ const info = (authConfig, customerKey, next) => {
         </Options>
      </RetrieveRequest>
   </RetrieveRequestMsg>
-</soapenv:Body>`, next);
+</soapenv:Body>`, (err, data) => {
+  // Thanks to Jonathan Van Driessen who reported this "bug".
+  // If only 1 field is returned, SFMC returns it as an Object instead of Array.
+  // Therefore we "normalise" this and returns it as an array.
+
+  if (data && data.Results) {
+    data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+  }
+
+  next(err, data);
+});
 };
 
 

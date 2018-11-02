@@ -5,6 +5,8 @@ This project is currently in development mode. Feel free to contribute.
 Keep in mind that this package is still under construction.
 If you want add extra feature or have feature requests, you can contact us at contact@deselect.io.
 
+See the UPDATES.md file for updates & versioning.
+
 
 ## Installation
 ```bash
