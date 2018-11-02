@@ -25,8 +25,9 @@ const list = (authConfig, next) => {
 
 // append, update (enkel mogelijk als dataExtentions een primary key heeft), overwrite
 
+// TODO: cleaner error message.
 const create = (authConfig, settings, next) => {
-  const extentionName = 'DESelect'
+  const extentionName = 'DESelect';
   const name = settings.name || `${extentionName}_${new Date().getTime()}`;
   soap.execute(authConfig, 'Create', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -51,7 +52,7 @@ const create = (authConfig, settings, next) => {
      </Objects>
     </CreateRequest>
    </soapenv:Body>`, (err, data) => {
-     if (data.Results) {
+     if (data.Results && data.Results.NewObjectID && typeof data.Results.NewObjectID !== 'undefined') {
        next(false, {
          success: true,
          message: '',
@@ -63,6 +64,7 @@ const create = (authConfig, settings, next) => {
          success: false,
          ObjectID: '',
          message: 'Unexpected error.',
+         result: data,
        });
      }
    });
