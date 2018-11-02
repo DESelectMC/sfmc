@@ -1,6 +1,6 @@
 {
   "name": "sfmc",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Salesforce Marketing Cloud JS API.",
   "main": "./sfmc/index.js",
   "scripts": {
