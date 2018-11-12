@@ -15,10 +15,10 @@ npm install sfmc --save
 
 ## Examples snippets
 ```javascript
-// Show a list of all dataExtentions
+// Show a list of all dataExtensions
 const sfmc = require('sfmc');
 
-sfmc.dataExtentions.list({
+sfmc.dataExtensions.list({
   oauthToken: 'xxxxx',
   server: 'xx' // ex. s10
 }, (err, data) => {

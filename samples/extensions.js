@@ -2,7 +2,7 @@ const sfmc = require('../sfmc/index');
 const auth = require('../auth');
 
 // All in one example
-sfmc.dataExtentions.list({
+sfmc.dataExtensions.list({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, (err, data) => {
@@ -10,7 +10,7 @@ sfmc.dataExtentions.list({
 });
 
 
-sfmc.dataExtentions.info({
+sfmc.dataExtensions.info({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, 'BFFC6D80-37FF-448A-9289-C29F94A7D49E', (err, data) => {
@@ -21,11 +21,11 @@ sfmc.dataExtentions.info({
   }
 });
 
-sfmc.dataExtentions.data({
+sfmc.dataExtensions.data({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, {
-  extentionId: 'BFFC6D80-37FF-448A-9289-C29F94A7D49E',
+  extensionId: 'BFFC6D80-37FF-448A-9289-C29F94A7D49E',
   limit: false, // default 20
 }, (err, data) => {
   if (err) console.log(err);
@@ -33,7 +33,7 @@ sfmc.dataExtentions.data({
 });
 
 
-sfmc.dataExtentions.create({
+sfmc.dataExtensions.create({
   oauthToken: auth.oauthToken,
   server: 's10',
 }, {
