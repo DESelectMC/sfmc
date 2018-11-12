@@ -54,37 +54,6 @@ const search = (authConfig, input, next) => {
 };
 
 
-/*
-<Filter xsi:type="SimpleFilterPart">
-   <Property>CustomerKey</Property>
-   <SimpleOperator>equals</SimpleOperator>
-   <Value>Testing_Forigen_Char_key</Value>
-</Filter>
-*/
-
-/*
-sfmc.modules.dataExtentions.list(auth, (err, data) => {
-  console.log(data);
-});
-*/
-
-const list = (authConfig, next) => {
-  soap.execute(authConfig, 'Retrieve', `
-      <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-       <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
-          <RetrieveRequest>
-             <ObjectType>DataExtension</ObjectType>
-             <Properties>ObjectID</Properties>
-             <Properties>CustomerKey</Properties>
-             <Properties>Name</Properties>
-             <Properties>IsSendable</Properties>
-             <Properties>SendableSubscriberField.Name</Properties>
-          </RetrieveRequest>
-       </RetrieveRequestMsg>
-    </soapenv:Body>`, next);
-};
-
-
 const info = (authConfig, customerKey, next) => {
   soap.execute(authConfig, 'Retrieve', `
   <soapenv:Body xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -123,19 +92,94 @@ const info = (authConfig, customerKey, next) => {
   // If only 1 field is returned, SFMC returns it as an Object instead of Array.
   // Therefore we "normalise" this and returns it as an array.
 
-  if (data && data.Results) {
-    data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+  if (data && data.Results && data.OverallStatus) {
+    if (data.OverallStatus === 'Error') {
+      next(data.Results.StatusMessage, false);
+    } else {
+      data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+      next(false, data);
+    }
+  } else {
+    next('No return from SFMC.', false);
   }
-
-  next(err, data);
 });
+};
+
+
+const data = (authConfig, input, next) => {
+  info(authConfig, input.extentionId, (err, data) => {
+    if (data && data.Results) {
+      let fieldsString = '';
+      for (let i = 0; i < data.Results.length; i += 1) {
+        fieldsString += `<Properties>${data.Results[i].Name}</Properties>`;
+      }
+      soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
+         <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+            <RetrieveRequest>
+               <ObjectType>DataExtensionObject[${input.extentionId}]</ObjectType>
+               ${fieldsString}
+            </RetrieveRequest>
+         </RetrieveRequestMsg>
+      </soapenv:Body>`, (err, data) => {
+        if (data && data.Results && data.OverallStatus) {
+          if (data.OverallStatus === 'Error') {
+            next(data.Results.StatusMessage, false);
+          } else {
+            const result = [];
+            for (let i = 0; i < data.Results.length; i += 1) {
+              // console.log(data.Results[i].Properties.Property);
+              const res = {};
+              for (let x = 0; x < data.Results[i].Properties.Property.length; x += 1) {
+                // console.log(data.Results[i].Properties.Property[x]);
+                const row = data.Results[i].Properties.Property[x];
+                const name = row.Name;
+                res[name] = row.Value;
+              }
+              result.push(res);
+            }
+
+            const limit = input.limit || 20;
+
+            next(false, result.slice(0, limit));
+          }
+        } else {
+          next('No return from SFMC.', false);
+        }
+      });
+    } else {
+      next("Couldn't get data from dataExtention", false);
+    }
+  });
+};
+
+
+/*
+sfmc.modules.dataExtentions.list(auth, (err, data) => {
+  console.log(data);
+});
+*/
+
+const list = (authConfig, next) => {
+  soap.execute(authConfig, 'Retrieve', `
+      <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+       <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+          <RetrieveRequest>
+             <ObjectType>DataExtension</ObjectType>
+             <Properties>ObjectID</Properties>
+             <Properties>CustomerKey</Properties>
+             <Properties>Name</Properties>
+             <Properties>IsSendable</Properties>
+             <Properties>SendableSubscriberField.Name</Properties>
+          </RetrieveRequest>
+       </RetrieveRequestMsg>
+    </soapenv:Body>`, next);
 };
 
 
 // TODO => add fields here
 const create = (authConfig, input, next) => {
   /*
-  sfmc.modules.dataExtentions.create(auth, {
+  sfmc.dataExtentions.create(auth, {
     name: 'created_by_timothy',
     customerKey: 'xxxxxx',
   }, (err, data) => {
@@ -143,52 +187,96 @@ const create = (authConfig, input, next) => {
   });
   */
 
+
+  /*
+  <Field>
+      <CustomerKey>EmailAddress_Key</CustomerKey>
+      <Name>EmailAddress</Name>
+      <FieldType>EmailAddress</FieldType>
+  </Field>
+
+
+{
+  PartnerKey: '',
+  Name: 'email',
+  Scale: 0,
+  DefaultValue: '',
+  MaxLength: 254,
+  IsRequired: false,
+  Ordinal: 4,
+  IsPrimaryKey: false,
+  FieldType: 'EmailAddress',
+}
+
+  */
+
+  let fields = '';
+  for (let i = 0; i < input.fields.length; i += 1) {
+    let field = '<Field>';
+    for (let z = 0; z < Object.keys(input.fields[i]).length; z += 1) {
+      const key = Object.keys(input.fields[i])[z];
+      const value = input.fields[i][key];
+
+      // TODO: check that this is the minimal requirement.
+      /*
+      if (key === 'Name') {
+        field += `<CustomerKey>${value}</CustomerKey>`;
+      }
+      */
+
+      // console.log(key, value);
+      field += `<${key}>${value}</${key}>`;
+    }
+    field += '</Field>';
+    fields += field;
+  }
+
+
+  // console.log(fields);
+
+  /*
+  <IsSendable>false</IsSendable>
+  <SendableDataExtensionField>
+      <CustomerKey>EmailAddress_Key</CustomerKey>
+      <Name>EmailAddress</Name>
+      <FieldType>EmailAddress</FieldType>
+  </SendableDataExtensionField>
+  <SendableSubscriberField>
+      <Name>Email Address</Name>
+      <Value></Value>
+  </SendableSubscriberField>
+
+
+  <CustomerKey>${input.customerKey}</CustomerKey>
+  */
+
   soap.execute(authConfig, 'Create', `<soapenv:Body>
     <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
         <Options></Options>
         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
-            <CustomerKey>${input.customerKey}</CustomerKey>
             <Name>${input.name}</Name>
-            <IsSendable>false</IsSendable>
-            <SendableDataExtensionField>
-                <CustomerKey>EmailAddress_Key</CustomerKey>
-                <Name>EmailAddress</Name>
-                <FieldType>EmailAddress</FieldType>
-            </SendableDataExtensionField>
-            <SendableSubscriberField>
-                <Name>Email Address</Name>
-                <Value></Value>
-            </SendableSubscriberField>
             <Fields>
-                <Field>
-                    <CustomerKey>EmailAddress_Key</CustomerKey>
-                    <Name>EmailAddress</Name>
-                    <FieldType>EmailAddress</FieldType>
-                </Field>
-                <Field>
-                    <CustomerKey>ChannelUser_Key</CustomerKey>
-                    <Name>ChannelUser</Name>
-                    <FieldType>Text</FieldType>
-                </Field>
-                <Field>
-                    <CustomerKey>ChannelUser_EmailAddress_Key</CustomerKey>
-                    <Name>ChannelUser_EmailAddress</Name>
-                    <FieldType>EmailAddress</FieldType>
-                </Field>
-                <Field>
-                    <CustomerKey>Demographic_Address_Key</CustomerKey>
-                    <Name>Demographic_Address</Name>
-                    <FieldType>Text</FieldType>
-                </Field>
+            ${fields}
             </Fields>
         </Objects>
     </CreateRequest>
-</soapenv:Body>`, next);
+</soapenv:Body>`, (err, data) => {
+  if (data && data.Results && data.OverallStatus) {
+    if (data.OverallStatus === 'Error') {
+      next(data.Results.StatusMessage, false);
+    } else {
+      next(false, data);
+    }
+  } else {
+    next('No return from SFMC.', false);
+  }
+});
 };
 
 
 module.exports = {
   list,
+  data,
   info,
   search,
   create,
