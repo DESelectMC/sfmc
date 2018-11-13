@@ -247,13 +247,13 @@ const create = (authConfig, input, next) => {
   </SendableSubscriberField>
 
 
-  <CustomerKey>${input.customerKey}</CustomerKey>
   */
-
-  soap.execute(authConfig, 'Create', `<soapenv:Body>
-    <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
-        <Options></Options>
+ 
+ soap.execute(authConfig, 'Create', `<soapenv:Body>
+ <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
+     <Options></Options>
         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
+            <CustomerKey>${input.customerKey || input.name}</CustomerKey>
             <Name>${input.name}</Name>
             <Fields>
             ${fields}
