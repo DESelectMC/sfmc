@@ -3,11 +3,11 @@ const soap = require('../soap');
 
 const search = (authConfig, input, next) => {
   /* example call
-  sfmc.modules.dataExtentions.search(auth, {
+  sfmc.modules.dataExtensions.search(auth, {
     field: 'leeftijd',
     operator: 'equals',
     value: '23',
-    extentionId: 'AEC60599-F25C-4A42-B847-431FFD502648',
+    extensionId: 'AEC60599-F25C-4A42-B847-431FFD502648',
     fields: [
       'firstname',
       'lastname',
@@ -41,7 +41,7 @@ const search = (authConfig, input, next) => {
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
      <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
         <RetrieveRequest>
-           <ObjectType>DataExtensionObject[${input.extentionId}]</ObjectType>
+           <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
            ${fieldsString}
            <Filter xsi:type="SimpleFilterPart">
               <Property>${input.field}</Property>
@@ -107,7 +107,7 @@ const info = (authConfig, customerKey, next) => {
 
 
 const data = (authConfig, input, next) => {
-  info(authConfig, input.extentionId, (err, data) => {
+  info(authConfig, input.extensionId, (err, data) => {
     if (data && data.Results) {
       let fieldsString = '';
       for (let i = 0; i < data.Results.length; i += 1) {
@@ -116,7 +116,7 @@ const data = (authConfig, input, next) => {
       soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
          <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
             <RetrieveRequest>
-               <ObjectType>DataExtensionObject[${input.extentionId}]</ObjectType>
+               <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
                ${fieldsString}
             </RetrieveRequest>
          </RetrieveRequestMsg>
@@ -147,14 +147,14 @@ const data = (authConfig, input, next) => {
         }
       });
     } else {
-      next("Couldn't get data from dataExtention", false);
+      next("Couldn't get data from dataExtension", false);
     }
   });
 };
 
 
 /*
-sfmc.modules.dataExtentions.list(auth, (err, data) => {
+sfmc.modules.dataExtensions.list(auth, (err, data) => {
   console.log(data);
 });
 */
@@ -179,7 +179,7 @@ const list = (authConfig, next) => {
 // TODO => add fields here
 const create = (authConfig, input, next) => {
   /*
-  sfmc.dataExtentions.create(auth, {
+  sfmc.dataExtensions.create(auth, {
     name: 'created_by_timothy',
     customerKey: 'xxxxxx',
   }, (err, data) => {

@@ -26,8 +26,8 @@ sfmc.queryActivity.update(auth, 'xxxxx-xxx-xxx-xxx-xxx', {
   name: 'Test activity',
   description: 'Test activity',
   query: 'Select Name as EMAIL from Accounts',
-  extentionId: 'xxxx-xxxx-xxxx-xxx-xxxxx',
-  extentionName: 'Target_DE',
+  extensionId: 'xxxx-xxxx-xxxx-xxx-xxxxx',
+  extensionName: 'Target_DE',
 }, (err, data) => {
   console.log(data);
 });

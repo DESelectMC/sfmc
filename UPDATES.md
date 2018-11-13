@@ -5,10 +5,10 @@ Here you'll find an overview of our latest releases.
 ## Version 0.1.0
 Published 12 November 2018
 
-- Bug fixes in data dataExtentions
-- Better error notifications in dataExtentions
-- Create dataExtention now with custom fields
-- Get data from dataExtention
+- Bug fixes in data dataExtensions
+- Better error notifications in dataExtensions
+- Create dataExtension now with custom fields
+- Get data from dataExtension
 
 ## Version < 0.0.8
 Published: 2 November 2018
