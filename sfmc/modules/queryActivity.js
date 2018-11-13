@@ -53,13 +53,35 @@ const create = (authConfig, settings, next) => {
     </CreateRequest>
    </soapenv:Body>`, (err, data) => {
      if (data.Results && data.Results.NewObjectID && typeof data.Results.NewObjectID !== 'undefined') {
-       next(false, {
-         success: true,
-         message: '',
-         ObjectID: data.Results.NewObjectID,
+       if (data && data.Results && data.OverallStatus) {
+         if (data.OverallStatus === 'Error') {
+           next(data.Results.StatusMessage, {
+             success: false,
+             message: data.Results.StatusMessage,
+             ObjectID: '',
+           });
+         } else {
+           next(false, {
+             success: true,
+             message: '',
+             ObjectID: data.Results.NewObjectID,
+           });
+         }
+       } else {
+         next('No return from SFMC.', {
+           success: false,
+           message: 'Unknown error from SFMC API',
+           ObjectID: data.Results.NewObjectID,
+         });
+       }
+     } else if (data.OverallStatus === 'Error') {
+       next(data.Results.StatusMessage, {
+         success: false,
+         ObjectID: '',
+         message: data.Results.StatusMessage,
+         result: {},
        });
      } else {
-       console.log(data);
        next(false, {
          success: false,
          ObjectID: '',
@@ -71,6 +93,11 @@ const create = (authConfig, settings, next) => {
 };
 
 
+/*
+<Name>${settings.name}</Name>
+<Description>${settings.description}</Description>
+*/
+
 const update = (authConfig, objectId, settings, next) => {
   soap.execute(authConfig, 'Update', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -79,8 +106,6 @@ const update = (authConfig, objectId, settings, next) => {
      <Objects xsi:type="QueryDefinition">
      <ObjectID>${objectId}</ObjectID>
       <CustomerKey></CustomerKey>
-      <Name>${settings.name}</Name>
-      <Description>${settings.description}</Description>
       <QueryText>${settings.query}</QueryText>
       <DataExtensionTarget>
        <CustomerKey>${settings.extensionId}</CustomerKey>
@@ -89,7 +114,17 @@ const update = (authConfig, objectId, settings, next) => {
       <TargetUpdateType>Overwrite</TargetUpdateType>
      </Objects>
     </UpdateRequest>
-   </soapenv:Body>`, next);
+   </soapenv:Body>`, (err, data) => {
+     if (data && data.Results && data.OverallStatus) {
+       if (data.OverallStatus === 'Error') {
+         next(data.Results.StatusMessage, false);
+       } else {
+         next(false, data);
+       }
+     } else {
+       next('No return from SFMC.', false);
+     }
+   });
 };
 
 
@@ -112,7 +147,7 @@ const run = (authConfig, objectId, next) => {
        next(false, data.Results.Result.Task);
      } else {
        console.log(data);
-       next(false, {
+       next('Unexpected error.', {
          success: false,
          message: 'Unexpected error.',
        });
@@ -120,7 +155,7 @@ const run = (authConfig, objectId, next) => {
    });
 };
 
-
+// status can be: Queued, Processing, Complete
 const status = (authConfig, taskId, next) => {
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
     <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
@@ -149,22 +184,25 @@ const status = (authConfig, taskId, next) => {
        </RetrieveRequest>
     </RetrieveRequestMsg>
   </soapenv:Body>`, (err, data) => {
-    if (data.Results && data.Results.Properties && data.Results.Properties.Property) {
-      const result = {
-        moment: new Date().getTime(),
-      };
-      for (let i = 0; i < data.Results.Properties.Property.length; i += 1) {
-        const name = data.Results.Properties.Property[i].Name;
-        // result[name] = data.Results.Properties.Property[i].Value;
-        if (name === 'CompletedDate' || name === 'StatusMessage' || name === 'Status') {
-          result[name] = data.Results.Properties.Property[i].Value;
+    if (data && data.Results) {
+      if (data.Results.Properties && data.Results.Properties.Property) {
+        const result = {
+          moment: new Date().getTime(),
+        };
+
+        for (let i = 0; i < data.Results.Properties.Property.length; i += 1) {
+          const name = data.Results.Properties.Property[i].Name;
+          // result[name] = data.Results.Properties.Property[i].Value;
+          if (name === 'CompletedDate' || name === 'StatusMessage' || name === 'Status') {
+            result[name] = data.Results.Properties.Property[i].Value;
+          }
         }
+        next(false, result);
       }
-      next(false, result);
     } else {
       next(false, {
         success: false,
-        message: 'Unexpected error.',
+        message: 'Auth problem or ask not found.',
       });
     }
   });

@@ -88,16 +88,22 @@ const info = (authConfig, customerKey, next) => {
      </RetrieveRequest>
   </RetrieveRequestMsg>
 </soapenv:Body>`, (err, data) => {
+  if (err) console.log(err);
   // Thanks to Jonathan Van Driessen who reported this "bug".
   // If only 1 field is returned, SFMC returns it as an Object instead of Array.
   // Therefore we "normalise" this and returns it as an array.
-
-  if (data && data.Results && data.OverallStatus) {
-    if (data.OverallStatus === 'Error') {
-      next(data.Results.StatusMessage, false);
+  // console.log(data);
+  if (data && data.OverallStatus) {
+    if (data.Results) {
+      if (data.OverallStatus === 'Error') {
+        next(data.Results.StatusMessage, false);
+      } else {
+        data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+        next(false, data);
+      }
     } else {
-      data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
-      next(false, data);
+      console.log(data);
+      next('dataExtension does not exists.', false);
     }
   } else {
     next('No return from SFMC.', false);
@@ -106,13 +112,24 @@ const info = (authConfig, customerKey, next) => {
 };
 
 
+const isNumber = (input, standard) => {
+  if (!isNaN(input)) {
+    return Number(input);
+  }
+  return standard;
+};
+
+
 const data = (authConfig, input, next) => {
+  const defaultLimit = 20;
   info(authConfig, input.extensionId, (err, data) => {
+    if (err) console.log(err);
     if (data && data.Results) {
       let fieldsString = '';
       for (let i = 0; i < data.Results.length; i += 1) {
         fieldsString += `<Properties>${data.Results[i].Name}</Properties>`;
       }
+
       soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
          <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
             <RetrieveRequest>
@@ -121,6 +138,7 @@ const data = (authConfig, input, next) => {
             </RetrieveRequest>
          </RetrieveRequestMsg>
       </soapenv:Body>`, (err, data) => {
+        // console.log(data);
         if (data && data.Results && data.OverallStatus) {
           if (data.OverallStatus === 'Error') {
             next(data.Results.StatusMessage, false);
@@ -129,24 +147,31 @@ const data = (authConfig, input, next) => {
             for (let i = 0; i < data.Results.length; i += 1) {
               // console.log(data.Results[i].Properties.Property);
               const res = {};
-              for (let x = 0; x < data.Results[i].Properties.Property.length; x += 1) {
+
+              // because sometimes this is an object and something an array (more than 1 item)
+              const property = data.Results[i].Properties.Property;
+              const Properties = (Array.isArray(property) ? property : [property]);
+
+              for (let x = 0; x < Properties.length; x += 1) {
                 // console.log(data.Results[i].Properties.Property[x]);
-                const row = data.Results[i].Properties.Property[x];
+                const row = Properties[x];
                 const name = row.Name;
                 res[name] = row.Value;
               }
               result.push(res);
             }
 
-            const limit = input.limit || 20;
+            const limit = input.limit || defaultLimit;
 
-            next(false, result.slice(0, limit));
+            next(false, result.slice(0, isNumber(limit, defaultLimit)));
           }
         } else {
           next('No return from SFMC.', false);
         }
       });
     } else {
+      console.log(data);
+      console.log('[Error] No results in returning object.');
       next("Couldn't get data from dataExtension", false);
     }
   });
@@ -248,8 +273,8 @@ const create = (authConfig, input, next) => {
 
 
   */
- 
- soap.execute(authConfig, 'Create', `<soapenv:Body>
+
+  soap.execute(authConfig, 'Create', `<soapenv:Body>
  <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
      <Options></Options>
         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
