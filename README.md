@@ -28,8 +28,11 @@ sfmc.dataExtensions.list({
 
 
 ## Roadmap
-- In app token managment (request, refresh etc.)
-- If token is expired, refresh it
+- Expand methods for Data Extensions
+- Expand methods for Query Activities
+- Methods for folders
+- Methods for user information
+- Methods for Automations
 
 
 ## Author
