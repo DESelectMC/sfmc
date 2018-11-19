@@ -117,11 +117,13 @@ const update = (authConfig, objectId, settings, next) => {
    </soapenv:Body>`, (err, data) => {
      if (data && data.Results && data.OverallStatus) {
        if (data.OverallStatus === 'Error') {
-         next(data.Results.StatusMessage, false);
-       } else {
+         if (typeof next === 'function') {
+           next(data.Results.StatusMessage, false);
+         }
+       } else if (typeof next === 'function') {
          next(false, data);
        }
-     } else {
+     } else if (typeof next === 'function') {
        next('No return from SFMC.', false);
      }
    });

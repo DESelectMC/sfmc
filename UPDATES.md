@@ -3,6 +3,12 @@ Here you'll find an overview of our latest releases.
 
 
 
+## Version 0.1.3
+Published 19 November 2018
+
+- Check if next is a valid function
+
+
 ## Version 0.1.2
 Published 13 November 2018
 
