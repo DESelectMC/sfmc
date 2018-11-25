@@ -36,5 +36,5 @@ sfmc.dataExtensions.list({
 
 
 ## Author
-Timothy Verhaeghe timothy.verhaeghe@deselect.io <br />
-Sponsored & maintained by DESelect.io.
+Maintained by: DESelect.io (contact@deselect.io) <br />
+Initial contributor: Timothy Verhaeghe
