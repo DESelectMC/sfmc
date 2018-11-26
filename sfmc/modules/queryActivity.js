@@ -157,7 +157,7 @@ const run = (authConfig, objectId, next) => {
    });
 };
 
-// status can be: Queued, Processing, Complete
+// status can be: Queued, Processing, Complete, FatalError
 const status = (authConfig, taskId, next) => {
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
     <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
