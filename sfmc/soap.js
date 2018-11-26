@@ -3,7 +3,6 @@ const xml = require('./xml');
 const beautify = require('js-beautify').html;
 
 
-// TODO: make the webserver endpoint dynamic
 const call = (SOAPAction, body, server, next) => {
   request({
     method: 'POST',

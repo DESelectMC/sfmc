@@ -8,23 +8,35 @@ If you want add extra feature or have feature requests, you can contact us at co
 See the UPDATES.md file for updates & versioning.
 
 
-## Installation
-```bash
-npm install sfmc --save
-```
+## Setup
+Run `npm install sfmc --save` or simply `yarn add sfmc`
+
+
 
 ## Examples snippets
-```javascript
-// Show a list of all dataExtensions
-const sfmc = require('sfmc');
+See `./samples`.
 
-sfmc.dataExtensions.list({
-  oauthToken: 'xxxxx',
-  server: 'xx' // ex. s10
-}, (err, data) => {
-  console.log(data);
-});
+
+## Tests
+Tests are written using Mocha and Chai.
+Note that by testing you are interacting with the SFMC API and hence you will be creating data in the environment you chose to connect to!
+
+Run `npm test tests` to run tests.
+
+Note: To run most tests you will need to do some config:
+1. Add your SFMC clientID and clientSecret in `./config` as such:
 ```
+// In ./config/index.js
+const config = {
+  clientId: '<Your clientId>',
+  clientSecret: '<Your clientSecret>',
+  accessToken: '', // see below
+  server: '<Your SFMC Server Instance>', // e.g. s10
+};
+```
+2. Run `node utils` to get your accessToken. Add it to `./config/index.js` as well.
+
+For more information on how to create an app in SFMC and retrieve your clientId and clientSecret, please refer to the [Salesforce documentation](https://developer.salesforce.com/docs/atlas.en-us.noversion.mc-app-development.meta/mc-app-development/create-a-mc-app.htm).
 
 
 ## Roadmap
@@ -33,6 +45,7 @@ sfmc.dataExtensions.list({
 - Methods for folders
 - Methods for user information
 - Methods for Automations
+- More test coverage
 
 
 ## Author
