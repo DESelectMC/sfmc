@@ -2,8 +2,6 @@ const expect = require('chai').expect;
 const config = require('../config');
 const sfmc = require('../sfmc/index');
 
-// Tests will return data that needs to be used in other tests
-let queryActivityObjectId = '';
 
 // use Mocha to describe tests and expect certain results
 // always follow the pattern ARRANGE ACT ASSERT
@@ -27,12 +25,11 @@ describe('queryActivity', () => {
   
       // ACT
       sfmc.queryActivity.create(authConfig, settings, (err, result) => {
+        console.log({ result });
         // ASSERT
         expect(result).to.be.an('object');
         expect(result.ObjectID).to.not.be.empty;
   
-        queryActivityObjectId = result.ObjectID;
-        console.log({ queryActivityObjectId });
       });
     });
   })
