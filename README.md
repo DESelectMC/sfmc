@@ -16,6 +16,7 @@ See the UPDATES.md file for updates & versioning.
 const config = {
   clientId: '<Your clientId>',
   clientSecret: '<Your clientSecret>',
+  accessToken: '', // insert this later once you have called sfmc.soap.oauth() to get an accessToken from SFMC
 };
 ```
 For more information on how to create an app in SFMC and retrieve your clientId and clientSecret, please refer to the [Salesforce documentation](https://developer.salesforce.com/docs/atlas.en-us.noversion.mc-app-development.meta/mc-app-development/create-a-mc-app.htm).
