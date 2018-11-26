@@ -1,8 +1,9 @@
 {
+  "parser": "babel-eslint", 
   "root": true,
   "extends": "airbnb-base",
-  parserOptions: {
-    sourceType: 'module'
+  "parserOptions": {
+    "sourceType": "module"
   },
   "env": {
     "browser": true,
@@ -10,7 +11,7 @@
     "es6": true
   },
   "rules": {
-    "no-restricted-syntax": ["error", "FunctionExpression", "WithStatement", "BinaryExpression[operator='in']"],
+    "no-restricted-syntax": ["error", "FunctionExpression", "WithStatement", "BinaryExpression[operator="in"]"],
     "o-absolute-path": 0,
     "no-new": 0,
     "no-undef": 0,
@@ -18,10 +19,10 @@
     "no-bitwise": 0,
     "no-useless-escape": 0,
     "no-underscore-dangle": 0,
-    'global-require': 0,
-    'import/no-unresolved': 0,
-    'no-param-reassign': 0,
-    'no-shadow': 0,
+    "global-require": 0,
+    "import/no-unresolved": 0,
+    "no-param-reassign": 0,
+    "no-shadow": 0,
     "valid-jsdoc": ["error", {
       "requireReturn": true,
       "requireReturnType": true,

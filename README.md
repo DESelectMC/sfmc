@@ -8,23 +8,21 @@ If you want add extra feature or have feature requests, you can contact us at co
 See the UPDATES.md file for updates & versioning.
 
 
-## Installation
-```bash
-npm install sfmc --save
+## Setup
+1. `npm install sfmc --save` or simply `yarn add sfmc`
+2. If you want to run tests, you will need to add your SFMC clientID and clientSecret in `./config` as such:
 ```
+// In ./config/index.js
+const config = {
+  clientId: '<Your clientId>',
+  clientSecret: '<Your clientSecret>',
+};
+```
+For more information on how to create an app in SFMC and retrieve your clientId and clientSecret, please refer to the [Salesforce documentation](https://developer.salesforce.com/docs/atlas.en-us.noversion.mc-app-development.meta/mc-app-development/create-a-mc-app.htm).
+
 
 ## Examples snippets
-```javascript
-// Show a list of all dataExtensions
-const sfmc = require('sfmc');
-
-sfmc.dataExtensions.list({
-  oauthToken: 'xxxxx',
-  server: 'xx' // ex. s10
-}, (err, data) => {
-  console.log(data);
-});
-```
+See `./samples`.
 
 
 ## Roadmap

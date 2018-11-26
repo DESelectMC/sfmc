@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/DESelectMC/sfmc.git"
   },
-  "author": "Timothy Verhaeghe <me@timothyverhaeghe.com>",
+  "author": "DESelect.io <contact@deselect.io>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/DESelectMC/sfmc/issues"
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/DESelectMC/sfmc#readme",
   "dependencies": {
-    "babel-eslint": "^8.2.3",
+    "babel-eslint": "^8.2.6",
     "fast-xml-parser": "^3.12.0",
     "fs": "0.0.2",
     "js-beautify": "^1.8.1",
