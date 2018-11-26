@@ -25,12 +25,19 @@ For more information on how to create an app in SFMC and retrieve your clientId 
 See `./samples`.
 
 
+## Tests
+Run `npm test tests` to run tests.
+Tests are written using Mocha and Chai.
+Note: Tests are current WIP.
+
+
 ## Roadmap
 - Expand methods for Data Extensions
 - Expand methods for Query Activities
 - Methods for folders
 - Methods for user information
 - Methods for Automations
+- More test coverage
 
 
 ## Author
