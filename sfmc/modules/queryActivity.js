@@ -1,5 +1,5 @@
 const soap = require('../soap');
-const Util = require('./util.js');
+const xml = require('../xml.js');
 
 /*
 sfmc.modules.dataExtensions.list(auth, (err, data) => {
@@ -28,8 +28,8 @@ const list = (authConfig, next) => {
 // TODO: cleaner error message.
 const create = (authConfig, settings, next) => {
   const extensionName = 'DESelect';
-  const name = Util.escapeXML(settings.name || `${extensionName}_${new Date().getTime()}`);
-  const query = Util.escapeXML(settings.query);
+  const name = xml.escapeXML(settings.name || `${extensionName}_${new Date().getTime()}`);
+  const query = xml.escapeXML(settings.query);
   console.log('query in xml:' + query);
   soap.execute(authConfig, 'Create', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -102,8 +102,8 @@ const create = (authConfig, settings, next) => {
 */
 
 const update = (authConfig, objectId, settings, next) => {
-  const name = Util.escapeXML(settings.extensionName);
-  const query = Util.escapeXML(settings.query);
+  const name = xml.escapeXML(settings.extensionName);
+  const query = xml.escapeXML(settings.query);
   soap.execute(authConfig, 'Update', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <UpdateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">

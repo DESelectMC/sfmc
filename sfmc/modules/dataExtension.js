@@ -1,5 +1,5 @@
 const soap = require('../soap');
-const Util = require('./util.js');
+const xml = require('../xml.js');
 
 const search = (authConfig, input, next) => {
   /* example call
@@ -35,7 +35,7 @@ const search = (authConfig, input, next) => {
 
   let fieldsString = '';
   for (let i = 0; i < input.fields.length; i += 1) {
-    fieldsString += `<Properties>${Util.escapeXML(input.fields[i])}</Properties>`;
+    fieldsString += `<Properties>${xml.escapeXML(input.fields[i])}</Properties>`;
   }
 
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
@@ -44,9 +44,9 @@ const search = (authConfig, input, next) => {
            <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
            ${fieldsString}
            <Filter xsi:type="SimpleFilterPart">
-              <Property>${Util.escapeXML(input.field)}</Property>
-              <SimpleOperator>${Util.escapeXML(input.operator)}</SimpleOperator>
-              <Value>${Util.escapeXML(input.value)}</Value>
+              <Property>${xml.escapeXML(input.field)}</Property>
+              <SimpleOperator>${xml.escapeXML(input.operator)}</SimpleOperator>
+              <Value>${xml.escapeXML(input.value)}</Value>
            </Filter>
         </RetrieveRequest>
      </RetrieveRequestMsg>
@@ -128,7 +128,7 @@ const data = (authConfig, input, next) => {
     if (data && data.Results) {
       let fieldsString = '';
       for (let i = 0; i < data.Results.length; i += 1) {
-        fieldsString += `<Properties>${Util.escapeXML(data.Results[i].Name)}</Properties>`;
+        fieldsString += `<Properties>${xml.escapeXML(data.Results[i].Name)}</Properties>`;
       }
 
       soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
@@ -146,17 +146,19 @@ const data = (authConfig, input, next) => {
             next(data.Results.StatusMessage, false);
           } else {
             const result = [];
-            for (let i = 0; i < data.Results.length; i += 1) {
+            // if there is only 1 result, Results will be an object instead of an array
+            const results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+            for (let i = 0; i < results.length; i += 1) {
               // console.log(data.Results[i].Properties.Property);
               const res = {};
 
               // because sometimes this is an object and something an array (more than 1 item)
-              const property = data.Results[i].Properties.Property;
-              const Properties = (Array.isArray(property) ? property : [property]);
+              const property = results[i].Properties.Property;
+              const properties = (Array.isArray(property) ? property : [property]);
 
-              for (let x = 0; x < Properties.length; x += 1) {
+              for (let x = 0; x < properties.length; x += 1) {
                 // console.log(data.Results[i].Properties.Property[x]);
-                const row = Properties[x];
+                const row = properties[x];
                 const name = row.Name;
                 res[name] = row.Value;
               }
@@ -280,7 +282,7 @@ const create = (authConfig, input, next) => {
  <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
      <Options></Options>
         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
-            <CustomerKey>${Util.escapeXML(input.customerKey || input.name)}</CustomerKey>
+            <CustomerKey>${xml.escapeXML(input.customerKey || input.name)}</CustomerKey>
             <Name>${input.name}</Name>
             <Fields>
             ${fields}
