@@ -25,6 +25,13 @@ const parse = (xmlData) => {
   return false; // incorrect format.
 };
 
+const escapeXML = (query) => {
+  query = query.replace(/</g, '&lt;');
+  // query = query.replace(/>/g, '&gt'); // escaping this characters returns invalid xml, like when we DONT escape <...
+  return query;
+};
+
 module.exports = {
   parse,
+  escapeXML,
 };
