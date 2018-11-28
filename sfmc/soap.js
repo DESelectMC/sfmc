@@ -3,6 +3,7 @@ const xml = require('./xml');
 const beautify = require('js-beautify').html;
 
 
+// TODO: make the webserver endpoint dynamic
 const call = (SOAPAction, body, server, next) => {
   request({
     method: 'POST',
@@ -63,6 +64,7 @@ const execute = (config, soapType, body, next) => {
 // you make—-each access token is good for an hour and is reusable.
 // Making two API calls for every one operation is inefficient and causes throttling.
 const oauth = (settings, next) => {
+  console.log('requesting new token with clientId:' + settings.clientId + ' and clientSecret:' + settings.clientSecret);
   request({
     method: 'POST',
     url: 'https://auth.exacttargetapis.com/v1/requestToken',

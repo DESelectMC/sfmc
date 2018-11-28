@@ -1,5 +1,5 @@
 const soap = require('../soap');
-
+const Util = require('./util.js');
 
 const search = (authConfig, input, next) => {
   /* example call
@@ -35,7 +35,7 @@ const search = (authConfig, input, next) => {
 
   let fieldsString = '';
   for (let i = 0; i < input.fields.length; i += 1) {
-    fieldsString += `<Properties>${input.fields[i]}</Properties>`;
+    fieldsString += `<Properties>${Util.escapeXML(input.fields[i])}</Properties>`;
   }
 
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
@@ -44,9 +44,9 @@ const search = (authConfig, input, next) => {
            <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
            ${fieldsString}
            <Filter xsi:type="SimpleFilterPart">
-              <Property>${input.field}</Property>
-              <SimpleOperator>${input.operator}</SimpleOperator>
-              <Value>${input.value}</Value>
+              <Property>${Util.escapeXML(input.field)}</Property>
+              <SimpleOperator>${Util.escapeXML(input.operator)}</SimpleOperator>
+              <Value>${Util.escapeXML(input.value)}</Value>
            </Filter>
         </RetrieveRequest>
      </RetrieveRequestMsg>
@@ -88,6 +88,7 @@ const info = (authConfig, customerKey, next) => {
      </RetrieveRequest>
   </RetrieveRequestMsg>
 </soapenv:Body>`, (err, data) => {
+  console.log('result get info SMFC' + JSON.stringify(data));
   if (err) console.log(err);
   // Thanks to Jonathan Van Driessen who reported this "bug".
   // If only 1 field is returned, SFMC returns it as an Object instead of Array.
@@ -106,7 +107,7 @@ const info = (authConfig, customerKey, next) => {
       next('dataExtension does not exists.', false);
     }
   } else {
-    next('No return from SFMC.', false);
+    next('No return from SFMC during getInfo.', false);
   }
 });
 };
@@ -127,7 +128,7 @@ const data = (authConfig, input, next) => {
     if (data && data.Results) {
       let fieldsString = '';
       for (let i = 0; i < data.Results.length; i += 1) {
-        fieldsString += `<Properties>${data.Results[i].Name}</Properties>`;
+        fieldsString += `<Properties>${Util.escapeXML(data.Results[i].Name)}</Properties>`;
       }
 
       soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
@@ -138,6 +139,7 @@ const data = (authConfig, input, next) => {
             </RetrieveRequest>
          </RetrieveRequestMsg>
       </soapenv:Body>`, (err, data) => {
+          console.log('result get data SMFC' + JSON.stringify(data));
         // console.log(data);
         if (data && data.Results && data.OverallStatus) {
           if (data.OverallStatus === 'Error') {
@@ -166,7 +168,7 @@ const data = (authConfig, input, next) => {
             next(false, result.slice(0, isNumber(limit, defaultLimit)));
           }
         } else {
-          next('No return from SFMC.', false);
+          next('No return from SFMC during getData.', false);
         }
       });
     } else {
@@ -278,7 +280,7 @@ const create = (authConfig, input, next) => {
  <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
      <Options></Options>
         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
-            <CustomerKey>${input.customerKey || input.name}</CustomerKey>
+            <CustomerKey>${Util.escapeXML(input.customerKey || input.name)}</CustomerKey>
             <Name>${input.name}</Name>
             <Fields>
             ${fields}
