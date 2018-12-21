@@ -1,7 +1,9 @@
 const soap = require('../soap');
 const xml = require('../xml.js');
+const util = require('../util.js');
 
-const search = (authConfig, input, next) => {
+/* search for data extensions matching the given criteria */
+const search = async (authConfig, input, cb) => {
   /* example call
   sfmc.modules.dataExtensions.search(auth, {
     field: 'leeftijd',
@@ -50,14 +52,25 @@ const search = (authConfig, input, next) => {
            </Filter>
         </RetrieveRequest>
      </RetrieveRequestMsg>
-  </soapenv:Body>`, next);
+  </soapenv:Body>`, (error, success, data) => {
+    if (typeof cb === 'function') {
+      if (error) {
+        console.log(error);
+      }
+      cb(error, success, data);
+    }
+  });
 };
 
+/* get the details of a data extension with given customerkey. Returns cb(error, success, data) */
+const info = (authConfig, customerKey, cb) => {
+  // Only the properties defined here will be returned
+  // See https://developer.salesforce.com/docs/atlas.en-us.noversion.mc-apis.meta/mc-apis/dataextensionfield.htm for all available properties
+  //         <Properties>DisplayOrder</Properties>
 
-const info = (authConfig, customerKey, next) => {
-  soap.execute(authConfig, 'Retrieve', `
+  const xml = `
   <soapenv:Body xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+   <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
      <RetrieveRequest>
         <ObjectType>DataExtensionField</ObjectType>
         <Properties>Client.ID</Properties>
@@ -86,109 +99,123 @@ const info = (authConfig, customerKey, next) => {
            <IncludeObjects>true</IncludeObjects>
         </Options>
      </RetrieveRequest>
-  </RetrieveRequestMsg>
-</soapenv:Body>`, (err, data) => {
-  console.log('result get info SMFC' + JSON.stringify(data));
-  if (err) console.log(err);
-  // Thanks to Jonathan Van Driessen who reported this "bug".
-  // If only 1 field is returned, SFMC returns it as an Object instead of Array.
-  // Therefore we "normalise" this and returns it as an array.
-  // console.log(data);
-  if (data && data.OverallStatus) {
-    if (data.Results) {
-      if (data.OverallStatus === 'Error') {
-        next(data.Results.StatusMessage, false);
-      } else {
-        data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
-        next(false, data);
-      }
+   </RetrieveRequestMsg>
+  </soapenv:Body>`;
+  console.log(xml);
+  soap.execute(authConfig, 'Retrieve', xml, (error, success, data) => {
+    console.log('result dataExtension info call SMFC' + JSON.stringify(data));
+    // Thanks to Jonathan Van Driessen who reported this "bug".
+    // If only 1 field is returned, SFMC returns it as an Object instead of Array.
+    // Therefore we "normalise" this and returns it as an array.
+    // console.log(data);
+    if (error && typeof cb === 'function') {
+      console.log(error);
+      cb(error, false, null);
     } else {
-      console.log(data);
-      next('dataExtension does not exists.', false);
-    }
-  } else {
-    next('No return from SFMC during getInfo.', false);
-  }
-});
-};
-
-
-const isNumber = (input, standard) => {
-  if (!isNaN(input)) {
-    return Number(input);
-  }
-  return standard;
-};
-
-
-const data = (authConfig, input, next) => {
-  const defaultLimit = 20;
-  info(authConfig, input.extensionId, (err, data) => {
-    if (err) console.log(err);
-    if (data && data.Results) {
-      let fieldsString = '';
-      for (let i = 0; i < data.Results.length; i += 1) {
-        fieldsString += `<Properties>${xml.escapeXML(data.Results[i].Name)}</Properties>`;
-      }
-
-      soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
-         <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
-            <RetrieveRequest>
-               <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
-               ${fieldsString}
-            </RetrieveRequest>
-         </RetrieveRequestMsg>
-      </soapenv:Body>`, (err, data) => {
-          console.log('result get data SMFC' + JSON.stringify(data));
-        // console.log(data);
-        if (data && data.Results && data.OverallStatus) {
+      if (data && data.OverallStatus) {
+        if (data.Results) {
           if (data.OverallStatus === 'Error') {
-            next(data.Results.StatusMessage, false);
-          } else {
-            const result = [];
-            // if there is only 1 result, Results will be an object instead of an array
-            const results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
-            for (let i = 0; i < results.length; i += 1) {
-              // console.log(data.Results[i].Properties.Property);
-              const res = {};
-
-              // because sometimes this is an object and something an array (more than 1 item)
-              const property = results[i].Properties.Property;
-              const properties = (Array.isArray(property) ? property : [property]);
-
-              for (let x = 0; x < properties.length; x += 1) {
-                // console.log(data.Results[i].Properties.Property[x]);
-                const row = properties[x];
-                const name = row.Name;
-                res[name] = row.Value;
-              }
-              result.push(res);
+            if (typeof cb === 'function') {
+              cb(data.Results.StatusMessage, false, null);
             }
-
-            const limit = input.limit || defaultLimit;
-
-            next(false, result.slice(0, isNumber(limit, defaultLimit)));
+          } else {
+            data.Results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+            if (typeof cb === 'function') {
+              cb(null, true, data);
+            }
           }
         } else {
-          next('No return from SFMC during getData.', false);
+          if (typeof cb === 'function') {
+            cb('DataExtension cannot be found with SFMC', false);
+          }
         }
-      });
-    } else {
-      console.log(data);
-      console.log('[Error] No results in returning object.');
-      next("Couldn't get data from dataExtension", false);
+      } else {
+        if (typeof cb === 'function') {
+          cb('Unknown error from SFMC API', false, null);
+        }
+      }
     }
   });
 };
 
+/* get the data from a data extension. Returns cb(error, success, data) */
+const data = (authConfig, input, cb) => {
+  const defaultLimit = 20;
+  // Get the fields of the extension
+  info(authConfig, input.extensionId, (error, success, data) => {
+    if (error && typeof cb === 'function') {
+      console.log(error);
+      cb(error, false, null);
+    } else {
 
-/*
-sfmc.modules.dataExtensions.list(auth, (err, data) => {
-  console.log(data);
-});
-*/
+      if (data && data.Results) {
+        // Create string with all fields we want to retrieve
+        let fieldsString = '';
+        for (let i = 0; i < data.Results.length; i += 1) {
+          fieldsString += `<Properties>${xml.escapeXML(data.Results[i].Name)}</Properties>`;
+        }
 
-const list = (authConfig, next) => {
+        // Retrieve data from data extension
+        soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
+           <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+              <RetrieveRequest>
+                 <ObjectType>DataExtensionObject[${input.extensionId}]</ObjectType>
+                 ${fieldsString}
+              </RetrieveRequest>
+           </RetrieveRequestMsg>
+        </soapenv:Body>`, (error, success, data) => {
+          console.log('result dataExtension data call SMFC' + JSON.stringify(data));
+          if (error && typeof cb === 'function') {
+            console.log(error);
+            cb(error, false, null);
+          } else {
+            if (data && data.Results && data.OverallStatus) {
+              if (data.OverallStatus === 'Error') {
+                if (typeof cb === 'function') {
+                  cb(data.Results.StatusMessage, false, null);
+                }
+              } else {
+                const result = [];
+                // if there is only 1 result, Results will be an object instead of an array
+                const results = (Array.isArray(data.Results) ? data.Results : [data.Results]);
+                for (let i = 0; i < results.length; i += 1) {
+                  const res = {};
+
+                  // because sometimes this is an object and something an array (more than 1 item)
+                  const property = results[i].Properties.Property;
+                  const properties = (Array.isArray(property) ? property : [property]);
+
+                  for (let x = 0; x < properties.length; x += 1) {
+                    const row = properties[x];
+                    const name = row.Name;
+                    res[name] = row.Value;
+                  }
+                  result.push(res);
+                }
+
+                const limit = input.limit || defaultLimit;
+                if (typeof cb === 'function') {
+                  cb(null, true, result.slice(0, util.isNumber(limit, defaultLimit)));
+                }
+              }
+            } else {
+              if (typeof cb === 'function') {
+                cb('No results from SFMC while getting DataExtension data', false, null);
+              }
+            }
+          }
+        });
+      } else {
+        if (typeof cb === 'function') {
+          cb('No results from SFMC while getting DataExtension info', false, null);
+        }
+      }
+    }
+  });
+};
+
+/* Get all DataExtensions for organisation */
+const list = (authConfig, cb) => {
   soap.execute(authConfig, 'Retrieve', `
       <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
        <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
@@ -201,105 +228,68 @@ const list = (authConfig, next) => {
              <Properties>SendableSubscriberField.Name</Properties>
           </RetrieveRequest>
        </RetrieveRequestMsg>
-    </soapenv:Body>`, next);
+    </soapenv:Body>`, (error, success, data) => {
+      if (typeof cb === 'function') {
+        if (error) {
+          console.log(error);
+        }
+        cb(error, !(error), data);
+      }
+    });
 };
 
 
-// TODO => add fields here
-const create = (authConfig, input, next) => {
-  /*
-  sfmc.dataExtensions.create(auth, {
-    name: 'created_by_timothy',
-    customerKey: 'xxxxxx',
-  }, (err, data) => {
-    console.log(data);
-  });
-  */
-
-
-  /*
-  <Field>
-      <CustomerKey>EmailAddress_Key</CustomerKey>
-      <Name>EmailAddress</Name>
-      <FieldType>EmailAddress</FieldType>
-  </Field>
-
-
-{
-  PartnerKey: '',
-  Name: 'email',
-  Scale: 0,
-  DefaultValue: '',
-  MaxLength: 254,
-  IsRequired: false,
-  Ordinal: 4,
-  IsPrimaryKey: false,
-  FieldType: 'EmailAddress',
-}
-
-  */
-
+/* Create new DataExtension. Returns cb(error, success, data) */
+const create = (authConfig, input, cb) => {
+  // Create string for fields
   let fields = '';
   for (let i = 0; i < input.fields.length; i += 1) {
-    let field = '<Field>';
+    let field = '<Field>\n';
     for (let z = 0; z < Object.keys(input.fields[i]).length; z += 1) {
       const key = Object.keys(input.fields[i])[z];
       const value = input.fields[i][key];
-
-      // TODO: check that this is the minimal requirement.
-      /*
-      if (key === 'Name') {
-        field += `<CustomerKey>${value}</CustomerKey>`;
+      if (value) {
+        field += ` <${key}>${value}</${key}>\n`;
       }
-      */
-
-      // console.log(key, value);
-      field += `<${key}>${value}</${key}>`;
     }
-    field += '</Field>';
+    field += '</Field>\n';
     fields += field;
   }
 
-
-  // console.log(fields);
-
-  /*
-  <IsSendable>false</IsSendable>
-  <SendableDataExtensionField>
-      <CustomerKey>EmailAddress_Key</CustomerKey>
-      <Name>EmailAddress</Name>
-      <FieldType>EmailAddress</FieldType>
-  </SendableDataExtensionField>
-  <SendableSubscriberField>
-      <Name>Email Address</Name>
-      <Value></Value>
-  </SendableSubscriberField>
-
-
-  */
-
-  soap.execute(authConfig, 'Create', `<soapenv:Body>
- <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
-     <Options></Options>
-        <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
-            <CustomerKey>${xml.escapeXML(input.customerKey || input.name)}</CustomerKey>
-            <Name>${input.name}</Name>
-            <Fields>
-            ${fields}
-            </Fields>
-        </Objects>
-    </CreateRequest>
-</soapenv:Body>`, (err, data) => {
-  if (data && data.Results && data.OverallStatus) {
-    if (data.OverallStatus === 'Error') {
-      next(data.Results.StatusMessage, false);
+ let xmlString = `<soapenv:Body>
+                  <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
+                      <Options></Options>
+                         <Objects xmlns:ns1="http://exacttarget.com/wsdl/partnerAPI" xsi:type="ns1:DataExtension">
+                             <CustomerKey>${xml.escapeXML(input.customerKey || input.name)}</CustomerKey>
+                             <Name>${input.name}</Name>
+                             <Fields>
+                             ${fields}
+                             </Fields>
+                         </Objects>
+                     </CreateRequest>
+                  </soapenv:Body>`;
+  soap.execute(authConfig, 'Create', xmlString, (error, success, data) => {
+    if (error && typeof cb === 'function') {
+      console.log(error);
+      cb(error, false, null);
     } else {
-      next(false, data);
+      if (data && data.Results && data.OverallStatus) {
+        if (data.OverallStatus === 'Error') {
+          if (typeof cb === 'function') {
+            cb(data.Results.StatusMessage, false, null);
+          }
+        } else {
+          if (typeof cb === 'function') {
+            cb(null, true, data);
+          }
+        }
+      } else {
+        if (typeof cb === 'function') {
+          cb('No results from SFMC while creating DataExtension', false, null);
+        }
+      }
     }
-  } else {
-    next('No return from SFMC.', false);
-  }
-});
+  });
 };
 
 
