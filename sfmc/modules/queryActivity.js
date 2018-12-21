@@ -33,7 +33,7 @@ returns cb(error, success, objectId)
 const create = (authConfig, settings, cb) => {
   const extensionName = 'DESelect';
   const name = xml.escapeXML(settings.name || `${extensionName}_${new Date().getTime()}`);
-  const description = xml.escapeXML(settings.description || )
+  const description = xml.escapeXML(settings.description);
   const query = xml.escapeXML(settings.query);
   soap.execute(authConfig, 'Create', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
