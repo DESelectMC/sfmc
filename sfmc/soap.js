@@ -4,7 +4,7 @@ const beautify = require('js-beautify').html;
 
 
 // TODO: make the webserver endpoint dynamic
-const call = (SOAPAction, body, server, next) => {
+const call = (SOAPAction, body, server, cb) => {
   request({
     method: 'POST',
     url: `https://webservice.${server}.exacttarget.com/Service.asmx`,
@@ -13,10 +13,13 @@ const call = (SOAPAction, body, server, next) => {
       'Content-Type': 'text/xml',
     },
     body,
-  }, (err, response, body) => {
-    if (err) console.log(err);
-    // console.log(response.statusCode);
-    next(err, body);
+  }, (error, response, body) => {
+    if (error && typeof cb === 'function') {
+      console.log(error);
+      cb(error, null);
+    } else if (typeof cb === 'function') {
+      cb(null, body);
+    }
   });
 };
 
@@ -52,10 +55,21 @@ const buildBody = (authConfig, body) => beautify(`
       `.toString(), { indent_size: 2, space_in_empty_paren: true });
 
 
-const execute = (config, soapType, body, next) => {
-  call(soapType, buildBody(config, body), config.server, (err, data) => {
-    if (err) console.log(err);
-    next(err, xml.parse(data));
+/* Returns cb(error, data) */
+const execute = (config, soapType, body, cb) => {
+  call(soapType, buildBody(config, body), config.server, (error, data) => {
+    if (error && typeof cb === 'function') {
+      cb(error, null);
+    } else if (typeof cb === 'function') {
+      const parsedXML = xml.parse(data);
+      if (parsedXML && typeof cb === 'function') {
+        cb(null, parsedXML);
+      } else {
+        if (typeof cb === 'function') {
+          cb('No valid XML returned', null);
+        }
+      }
+    }
   });
 };
 
@@ -63,7 +77,7 @@ const execute = (config, soapType, body, next) => {
 // Do not request a new access token for every API call
 // you make—-each access token is good for an hour and is reusable.
 // Making two API calls for every one operation is inefficient and causes throttling.
-const oauth = (settings, next) => {
+const oauth = (settings, cb) => {
   console.log('requesting new token with clientId:' + settings.clientId + ' and clientSecret:' + settings.clientSecret);
   request({
     method: 'POST',
@@ -72,9 +86,10 @@ const oauth = (settings, next) => {
       clientId: settings.clientId,
       clientSecret: settings.clientSecret,
     },
-  }, (err, response, body) => {
-    if (err) console.log(err);
-    next(err, body);
+  }, (error, response, body) => {
+    if (typeof cb === 'function') {
+      cb(error, body);
+    }
   });
 };
 

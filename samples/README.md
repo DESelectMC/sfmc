@@ -15,7 +15,7 @@ sfmc.queryActivity.create(auth, {
   query: 'Select Name as EMAIL from Accounts',
   DEName: 'Target_DE',
   DECustomerKey: 'xxxxx-xxxx-xxxx-xxx-xxxx',
-}, (err, data) => {
+}, (error, success, data) => {
   console.log(JSON.stringify(data));
 });
 ```
@@ -28,7 +28,7 @@ sfmc.queryActivity.update(auth, 'xxxxx-xxx-xxx-xxx-xxx', {
   query: 'Select Name as EMAIL from Accounts',
   extensionId: 'xxxx-xxxx-xxxx-xxx-xxxxx',
   extensionName: 'Target_DE',
-}, (err, data) => {
+}, (error, success, data) => {
   console.log(data);
 });
 ```

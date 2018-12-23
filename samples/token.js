@@ -9,6 +9,6 @@ const config = {
 };
 
 // All in one example
-sfmc.soap.oauth(config, (err, data) => {
+sfmc.soap.oauth(config, (error, success, data) => {
   console.log(data);
 });

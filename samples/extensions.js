@@ -5,7 +5,7 @@ const auth = require('../auth');
 sfmc.dataExtensions.list({
   oauthToken: auth.oauthToken,
   server: 's10',
-}, (err, data) => {
+}, (error, success, data) => {
   console.log(data);
 });
 
@@ -13,7 +13,7 @@ sfmc.dataExtensions.list({
 sfmc.dataExtensions.info({
   oauthToken: auth.oauthToken,
   server: 's10',
-}, 'BFFC6D80-37FF-448A-9289-C29F94A7D49E', (err, data) => {
+}, 'BFFC6D80-37FF-448A-9289-C29F94A7D49E', (error, success, data) => {
   if (data && data.Results) {
     console.log(data);
   } else {
@@ -27,7 +27,7 @@ sfmc.dataExtensions.data({
 }, {
   extensionId: 'BFFC6D80-37FF-448A-9289-C29F94A7D49E',
   limit: false, // default 20
-}, (err, data) => {
+}, (error, success, data) => {
   if (err) console.log(err);
   console.log(data);
 });
@@ -52,7 +52,7 @@ sfmc.dataExtensions.create({
     IsPrimaryKey: false,
     FieldType: 'EmailAddress',
   }],
-}, (err, data) => {
+}, (error, success, data) => {
   if (err) console.log(err);
   console.log(data);
 });
