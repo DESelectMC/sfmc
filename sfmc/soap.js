@@ -55,13 +55,20 @@ const buildBody = (authConfig, body) => beautify(`
       `.toString(), { indent_size: 2, space_in_empty_paren: true });
 
 
-/* Returns cb(error, success, data) */
+/* Returns cb(error, data) */
 const execute = (config, soapType, body, cb) => {
   call(soapType, buildBody(config, body), config.server, (error, data) => {
     if (error && typeof cb === 'function') {
-      cb(error, false, null);
+      cb(error, null);
     } else if (typeof cb === 'function') {
-      cb(null, true, xml.parse(data));
+      const parsedXML = xml.parse(data);
+      if (parsedXML && typeof cb === 'function') {
+        cb(null, parsedXML);
+      } else {
+        if (typeof cb === 'function') {
+          cb('No valid XML returned', null);
+        }
+      }
     }
   });
 };
@@ -81,7 +88,7 @@ const oauth = (settings, cb) => {
     },
   }, (error, response, body) => {
     if (typeof cb === 'function') {
-      cb(error, !(error), body);
+      cb(error, body);
     }
   });
 };

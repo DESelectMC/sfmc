@@ -15,12 +15,12 @@ const list = (authConfig, cb) => {
              <Properties>SendableSubscriberField.Name</Properties>
           </RetrieveRequest>
        </RetrieveRequestMsg>
-    </soapenv:Body>`, (error, success, data) => {
+    </soapenv:Body>`, (error, data) => {
       if (typeof cb === 'function') {
         if (error) {
           console.log(error);
         }
-        cb(error, success, data);
+        cb(error, data);
       }
     });
 };
@@ -28,11 +28,10 @@ const list = (authConfig, cb) => {
 // append, update (enkel mogelijk als dataExtensions een primary key heeft), overwrite
 
 /* create a new queryActivity
-returns cb(error, success, objectId)
+returns cb(error, objectId)
 */
 const create = (authConfig, settings, cb) => {
-  const extensionName = 'DESelect';
-  const name = xml.escapeXML(settings.name || `${extensionName}_${new Date().getTime()}`);
+  const name = xml.escapeXML(settings.name || `sfmc_${new Date().getTime()}`);
   const description = xml.escapeXML(settings.description);
   const query = xml.escapeXML(settings.query);
   soap.execute(authConfig, 'Create', `
@@ -57,35 +56,35 @@ const create = (authConfig, settings, cb) => {
       <TargetUpdateType>Overwrite</TargetUpdateType>
      </Objects>
     </CreateRequest>
-   </soapenv:Body>`, (error, success, data) => {
+   </soapenv:Body>`, (error, data) => {
      console.log('result create queryActivity call SMFC' + JSON.stringify(data));
      if (error && typeof cb === 'function') {
        console.log(error);
-       cb(error, false, null);
+       cb(error, null);
      } else {
        if (data.Results && data.Results.NewObjectID && typeof data.Results.NewObjectID !== 'undefined') {
          if (data && data.Results && data.OverallStatus) {
            if (data.OverallStatus === 'Error') {
              if (typeof cb === 'function') {
-               cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', false, null);
+               cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', null);
              }
            } else {
              if (typeof cb === 'function') {
-               cb(null, true, data.Results.NewObjectID);
+               cb(null, data.Results.Object);
              }
            }
          } else {
            if (typeof cb === 'function') {
-             cb('Unknown error from SFMC API', false, null);
+             cb('Unknown error from SFMC API', null);
            }
          }
        } else if (data.OverallStatus === 'Error') {
          if (typeof cb === 'function') {
-           cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', false, null);
+           cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', null);
          }
        } else {
          if (typeof cb === 'function') {
-           cb('Unexpected error', false, null);
+           cb('Unexpected error', null);
          }
        }
      }
@@ -98,7 +97,7 @@ const create = (authConfig, settings, cb) => {
 <Description>${settings.description}</Description>
 */
 
-/* update a queryActivity. Returns a cb(error, success, data) */
+/* update a queryActivity. Returns a cb(error, data) */
 const update = (authConfig, objectId, settings, cb) => {
   const name = xml.escapeXML(settings.extensionName);
   const query = xml.escapeXML(settings.query);
@@ -117,32 +116,32 @@ const update = (authConfig, objectId, settings, cb) => {
       <TargetUpdateType>Overwrite</TargetUpdateType>
      </Objects>
     </UpdateRequest>
-   </soapenv:Body>`, (error, success, data) => {
+   </soapenv:Body>`, (error, data) => {
      console.log('result update queryActivity call SMFC' + JSON.stringify(data));
      if (error && typeof cb === 'function') {
        console.log(error);
-       cb(error, false, null);
+       cb(error, null);
      } else {
        if (data && data.Results && data.OverallStatus) {
          if (data.OverallStatus === 'Error') {
            if (typeof cb === 'function') {
-             cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', false, null);
+             cb((data && data.Results && data.Results.StatusMessage) ? data.Results.StatusMessage : 'Unknown error from SFMC API', null);
            }
          } else {
            if (typeof cb === 'function') {
-             cb(null, true, data);
+             cb(null, data);
            }
          }
        } else {
          if (typeof cb === 'function') {
-           cb('Unknown error from SFMC API', false, null);
+           cb('Unknown error from SFMC API', null);
          }
        }
      }
    });
 };
 
-/* Starts execution of a queryActivity. Returns a cb(error, success, task) */
+/* Starts execution of a queryActivity. Returns a cb(error, task) */
 const run = (authConfig, objectId, cb) => {
   soap.execute(authConfig, 'Perform', `
   <soapenv:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -156,27 +155,27 @@ const run = (authConfig, objectId, cb) => {
       </ns1:Definition>
      </Definitions>
     </PerformRequestMsg>
-   </soapenv:Body>`, (error, success, data) => {
+   </soapenv:Body>`, (error, data) => {
 
      console.log('result run queryActivity call SMFC' + JSON.stringify(data));
      if (error && typeof cb === 'function') {
        console.log(error);
-       cb(error, false, null);
+       cb(error, null);
      } else {
        if (data && data.Results && data.Results.Result && data.Results.Result.Task) {
          if (typeof cb === 'function') {
-           cb(null, true, data.Results.Result.Task);
+           cb(null, data.Results.Result.Task);
          }
        } else {
          if (typeof cb === 'function') {
-           cb('Unknown error from SFMC API', false, null);
+           cb('Unknown error from SFMC API', null);
          }
        }
      }
    });
 };
 
-// get the status of a queryActivity tastk. status can be: Queued, Processing, Complete, Error. Returns a cb(error, success, results (object)) */
+// get the status of a queryActivity tastk. status can be: Queued, Processing, Complete, Error. Returns a cb(error, results (object)) */
 const status = (authConfig, taskId, cb) => {
   soap.execute(authConfig, 'Retrieve', `<soapenv:Body>
     <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
@@ -204,11 +203,11 @@ const status = (authConfig, taskId, cb) => {
           </Filter>
        </RetrieveRequest>
     </RetrieveRequestMsg>
-  </soapenv:Body>`, (error, success, data) => {
+  </soapenv:Body>`, (error, data) => {
     console.log('result status queryActivity call SMFC' + JSON.stringify(data));
     if (error && typeof cb === 'function') {
       console.log(error);
-      cb(error, false, null);
+      cb(error, null);
     } else {
       if (data && data.Results && data.Results.Properties && data.Results.Properties.Property) {
         const result = {
@@ -217,17 +216,17 @@ const status = (authConfig, taskId, cb) => {
 
         for (let i = 0; i < data.Results.Properties.Property.length; i += 1) {
           const name = data.Results.Properties.Property[i].Name;
-          if (name === 'CompletedDate' || name === 'StatusMessage' || name === 'Status') {
+          if (name === 'CompletedDate' || name === 'StatusMessage' || name === 'Status' || name === 'ErrorMsg') {
             result[name] = data.Results.Properties.Property[i].Value;
           }
         }
 
         if (typeof cb === 'function') {
-          cb(false, true, result);
+          cb(null, result);
         }
       } else {
         if (typeof cb === 'function') {
-          cb('Unknown error from SFMC API', false, null);
+          cb('Unknown error from SFMC API', null);
         }
       }
     }
